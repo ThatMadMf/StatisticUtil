@@ -3,31 +3,48 @@
     <a-button
         style="
           width: 30rem;
-          margin-left: 10rem;
+          margin: 1rem auto;
           font-weight: bold;
           font-size: large;
-          margin-top: 1rem;
           "
     >
       Upload file
     </a-button>
-    <div style="width: 90%; margin: 2rem 5%; overflow-x: auto;">
+    <div style="width: 90%; margin: 2rem 5%; overflow-x: auto;" v-if="showTable">
       <ScoresTable
           :scores="source"
           :append-row="appendRow"
           :append-column="appendColumn"
       />
     </div>
+    <a-button
+        style="
+          width: 30rem;
+          margin: 1rem auto;
+          font-weight: bold;
+          font-size: large;
+          "
+        @click="showTable = !showTable"
+    >
+      {{ showTable ? 'Hide table' : 'Show table' }}
+    </a-button>
+    <a-tabs :active-key="currentTabKey">
+      <a-tab-pane key="1" tab="Quantitative assessment">
+        <QuantitativeAssessmentTab :items="source"/>
+      </a-tab-pane>
+    </a-tabs>
   </div>
 </template>
 
 <script>
 
 import ScoresTable from "@/components/ScoresTable";
+import QuantitativeAssessmentTab from "./components/QuantitativeAssessmentTab";
 
 export default {
   name: 'App',
   components: {
+    QuantitativeAssessmentTab,
     ScoresTable,
   },
   computed: {
@@ -47,6 +64,8 @@ export default {
   },
   data() {
     return {
+      showTable: true,
+      currentTabKey: '1',
       source: [
         {
           id: 1,
