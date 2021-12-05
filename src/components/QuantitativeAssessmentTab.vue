@@ -17,13 +17,12 @@ export default {
       let s = [];
       let x = [];
 
-      for (let i = 1; i <= this.items[0].scores.length; i++) {
+      for (let i = 1; i <= Math.min(...this.items.map(item => item.scores.length)); i++) {
         let sum = this.items.map(item => item.scores.find(score => score.id === i).score).reduce((a, b) => a + b, 0);
 
         s.push(sum);
         x.push(Math.round((sum / this.items.length * 100)) / 100);
       }
-
 
       return [
         {
@@ -36,14 +35,14 @@ export default {
         },
         {
           id: 'Ni',
-          values: s.map(item => Math.round(item / s.reduce((a, b) => a + b,0) * 100)/ 100),
+          values: s.map(item => Math.round(item / s.reduce((a, b) => a + b, 0) * 100) / 100),
         }
       ]
     }
   },
   props: {
     items: Array,
-  }
+  },
 }
 </script>
 

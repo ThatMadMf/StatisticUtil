@@ -28,9 +28,15 @@
     >
       {{ showTable ? 'Hide table' : 'Show table' }}
     </a-button>
-    <a-tabs :active-key="currentTabKey">
+    <a-tabs
+        default-active-key="1"
+        style="width: 90%; margin: 2rem 5%; overflow-x: auto;"
+    >
       <a-tab-pane key="1" tab="Quantitative assessment">
         <QuantitativeAssessmentTab :items="source"/>
+      </a-tab-pane>
+      <a-tab-pane key="2" tab="Rank analysis">
+        <RankAnalysisTab :items="source"/>
       </a-tab-pane>
     </a-tabs>
   </div>
@@ -40,10 +46,12 @@
 
 import ScoresTable from "@/components/ScoresTable";
 import QuantitativeAssessmentTab from "./components/QuantitativeAssessmentTab";
+import RankAnalysisTab from "./components/RankAnalysisTab";
 
 export default {
   name: 'App',
   components: {
+    RankAnalysisTab,
     QuantitativeAssessmentTab,
     ScoresTable,
   },
@@ -55,17 +63,14 @@ export default {
       return this.source[0].scores.at(-1).id
     },
     scoresOfCurrentSize() {
-      const temp = this.source.at(-1).scores;
-      return temp.map(s => {
-        s.score = 0
-        return s
-      })
+      return new Array(this.source.at(-1).scores.length).fill(0).map((item, index) => {
+        return {id: index + 1, score: 0}
+      });
     }
   },
   data() {
     return {
       showTable: true,
-      currentTabKey: '1',
       source: [
         {
           id: 1,
