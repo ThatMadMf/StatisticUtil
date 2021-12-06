@@ -47,28 +47,28 @@ class Solver {
         }
 
         this.d = [];
-        for(let i = 1; i <= Math.min(...this.scores.map(item => item.scores.length)); i++) {
+        for (let i = 1; i <= Math.min(...this.scores.map(item => item.scores.length)); i++) {
             this.d.push(
-                this.scores
+                Math.round(this.scores
                     .map(item => item.scores.find(score => score.id === i).score)
                     .map(score => Math.pow(score - this.x[i - 1], 2))
-                    .reduce((a, b) => a + b) / this.scores.length
+                    .reduce((a, b) => a + b) / this.scores.length * 100) / 100
             );
         }
 
-        this.sigma = this.d.map(d => Math.sqrt(d));
+        this.sigma = this.d.map(d => Math.round(Math.sqrt(d) * 100) / 100);
         this.v = [];
 
-        for(let i = 0; i < Math.min(...this.scores.map(item => item.scores.length)); i++) {
+        for (let i = 0; i < Math.min(...this.scores.map(item => item.scores.length)); i++) {
             this.v.push(Math.round(this.d[i] / this.x[i] * 100))
         }
 
         this.interval = [];
 
-        for(let i = 0; i < Math.min(...this.scores.map(item => item.scores.length)); i++) {
+        for (let i = 0; i < Math.min(...this.scores.map(item => item.scores.length)); i++) {
             this.interval.push({
-                lower: this.x[i] - 2.23 * this.d[i] / Math.sqrt(this.scores.length),
-                upper: this.x[i] + 2.23 * this.d[i] / Math.sqrt(this.scores.length),
+                lower: Math.round((this.x[i] - 2.23 * this.d[i] / Math.sqrt(this.scores.length)) * 100) / 100,
+                upper: Math.round((this.x[i] + 2.23 * this.d[i] / Math.sqrt(this.scores.length)) * 100) / 100,
             })
         }
     }
@@ -81,11 +81,11 @@ class Solver {
             itemRanks: this.itemRanks,
             ranksSum: this.ranksSum,
             resultRanks: this.resultRank,
-            Var: this.Var,
-            d: this.d,
-            sigma: this.sigma,
-            v: this.v,
-            interval: this.interval,
+            Var: {id: 'Var', values: this.Var},
+            d: {id: 'D', values: this.d},
+            sigma: {id: 'σ', values: this.sigma},
+            v: {id: 'V', values: this.v},
+            interval: {id: 'Interval', values: this.interval.map(i => `${i.lower}...${i.upper}`)},
         }
     }
 }

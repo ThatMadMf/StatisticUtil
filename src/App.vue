@@ -42,6 +42,18 @@
             :result-ranks="solvedObject.resultRanks"
         />
       </a-tab-pane>
+      <a-tab-pane key="3" tab="Data consistency">
+        <DataConsistencyTab
+          :rows="[
+              this.solvedObject.Var,
+              this.solvedObject.x,
+              this.solvedObject.d,
+              this.solvedObject.sigma,
+              this.solvedObject.v,
+              this.solvedObject.interval,
+              ]"
+        />
+      </a-tab-pane>
     </a-tabs>
   </div>
 </template>
@@ -52,10 +64,12 @@ import ScoresTable from "@/components/ScoresTable";
 import QuantitativeAssessmentTab from "./components/QuantitativeAssessmentTab";
 import RankAnalysisTab from "./components/RankAnalysisTab";
 import Solver from "./solver";
+import DataConsistencyTab from "./components/DataConsistencyTab";
 
 export default {
   name: 'App',
   components: {
+    DataConsistencyTab,
     RankAnalysisTab,
     QuantitativeAssessmentTab,
     ScoresTable,
