@@ -10,7 +10,7 @@
     >
       Upload file
     </a-button>
-    <div style="width: 90%; margin: 2rem 5%; overflow-x: auto;" v-if="showTable">
+    <div style="width: 90%; margin: 2rem 5%; overflow-x: auto; max-height: 17rem; overflow-y: auto" v-if="showTable">
       <ScoresTable
           :scores="source"
           :append-row="appendRow"
@@ -30,7 +30,7 @@
     </a-button>
     <a-tabs
         default-active-key="1"
-        style="width: 90%; margin: 2rem 5%; overflow-x: auto;"
+        style="width: 90%; margin: 2rem 5%; overflow-x: auto; max-height: 25rem; overflow-y: auto;"
     >
       <a-tab-pane key="1" tab="Quantitative assessment">
         <QuantitativeAssessmentTab :items="source" :result="[solvedObject.s, solvedObject.x, solvedObject.n]"/>
@@ -45,14 +45,21 @@
       <a-tab-pane key="3" tab="Data consistency">
         <DataConsistencyTab
           :rows="[
-              this.solvedObject.Var,
-              this.solvedObject.x,
-              this.solvedObject.d,
-              this.solvedObject.sigma,
-              this.solvedObject.v,
-              this.solvedObject.interval,
+              solvedObject.Var,
+              solvedObject.x,
+              solvedObject.d,
+              solvedObject.sigma,
+              solvedObject.v,
+              solvedObject.interval,
               ]"
         />
+      </a-tab-pane>
+      <a-tab-pane key="4" tab="Rank correlation">
+      <RankCorrelationTab
+        :difference-rows="solvedObject.differences"
+        :p="solvedObject.p"
+        :w="solvedObject.w"
+      />
       </a-tab-pane>
     </a-tabs>
   </div>
@@ -65,10 +72,12 @@ import QuantitativeAssessmentTab from "./components/QuantitativeAssessmentTab";
 import RankAnalysisTab from "./components/RankAnalysisTab";
 import Solver from "./solver";
 import DataConsistencyTab from "./components/DataConsistencyTab";
+import RankCorrelationTab from "./components/RankCorrelationTab";
 
 export default {
   name: 'App',
   components: {
+    RankCorrelationTab,
     DataConsistencyTab,
     RankAnalysisTab,
     QuantitativeAssessmentTab,
