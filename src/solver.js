@@ -4,13 +4,18 @@ class Solver {
         this.quantitativeAssessment();
         this.rankAnalysis();
         this.dataConsistency();
+        this.rankCorrelation();
+    }
+
+    minRowSize() {
+        return Math.min(...this.scores.map(item => item.scores.length))
     }
 
     quantitativeAssessment() {
         this.s = [];
         this.x = [];
 
-        for (let i = 1; i <= Math.min(...this.scores.map(item => item.scores.length)); i++) {
+        for (let i = 1; i <= this.minRowSize(); i++) {
             let sum = this.scores.map(item => item.scores.find(score => score.id === i).score).reduce((a, b) => a + b, 0);
 
             this.s.push(sum);
@@ -39,7 +44,7 @@ class Solver {
 
     dataConsistency() {
         this.Var = [];
-        for (let i = 1; i <= Math.min(...this.scores.map(item => item.scores.length)); i++) {
+        for (let i = 1; i <= this.minRowSize(); i++) {
             this.Var.push(
                 Math.max(...this.scores.map(item => item.scores.find(score => score.id === i).score)) -
                 Math.min(...this.scores.map(item => item.scores.find(score => score.id === i).score))
@@ -47,7 +52,7 @@ class Solver {
         }
 
         this.d = [];
-        for (let i = 1; i <= Math.min(...this.scores.map(item => item.scores.length)); i++) {
+        for (let i = 1; i <= this.minRowSize(); i++) {
             this.d.push(
                 Math.round(this.scores
                     .map(item => item.scores.find(score => score.id === i).score)
@@ -59,17 +64,29 @@ class Solver {
         this.sigma = this.d.map(d => Math.round(Math.sqrt(d) * 100) / 100);
         this.v = [];
 
-        for (let i = 0; i < Math.min(...this.scores.map(item => item.scores.length)); i++) {
+        for (let i = 0; i < this.minRowSize(); i++) {
             this.v.push(Math.round(this.d[i] / this.x[i] * 100))
         }
 
         this.interval = [];
 
-        for (let i = 0; i < Math.min(...this.scores.map(item => item.scores.length)); i++) {
+        for (let i = 0; i < this.minRowSize(); i++) {
             this.interval.push({
                 lower: Math.round((this.x[i] - 2.23 * this.d[i] / Math.sqrt(this.scores.length)) * 100) / 100,
                 upper: Math.round((this.x[i] + 2.23 * this.d[i] / Math.sqrt(this.scores.length)) * 100) / 100,
             })
+        }
+    }
+
+    rankCorrelation() {
+        this.differences = [];
+        for (let i = 0; i < this.itemRanks.length; i++) {
+            for (let j = i + 1; j < this.itemRanks.length; j++) {
+                this.differences.push({
+                    id: `a ${i}-${j}`,
+                    values: this.itemRanks[i].values.map((item, index) => item - this.itemRanks[j].values[index])
+                })
+            }
         }
     }
 
@@ -86,6 +103,7 @@ class Solver {
             sigma: {id: 'σ', values: this.sigma},
             v: {id: 'V', values: this.v},
             interval: {id: 'Interval', values: this.interval.map(i => `${i.lower}...${i.upper}`)},
+            differences: this.differences,
         }
     }
 }
