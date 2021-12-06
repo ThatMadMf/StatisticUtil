@@ -80,14 +80,53 @@ class Solver {
 
     rankCorrelation() {
         this.differences = [];
+        this.p = [];
         for (let i = 0; i < this.itemRanks.length; i++) {
             for (let j = i + 1; j < this.itemRanks.length; j++) {
-                this.differences.push({
-                    id: `a ${i}-${j}`,
-                    values: this.itemRanks[i].values.map((item, index) => item - this.itemRanks[j].values[index])
-                })
+                const temp = this.itemRanks[i].values.map((item, index) => item - this.itemRanks[j].values[index]);
+                const aSquaresSum = temp.reduce((a, b) => a + b ** 2, 0);
+
+                this.differences.push({id: `a ${i + 1}-${j + 1}`, values: temp})
+
+                this.p.push({
+                    id: `p ${i + 1}-${j + 1}`,
+                    values: [
+                        Math.round(
+                            (1 - 6 * aSquaresSum / (this.minRowSize() * (Math.pow(this.minRowSize(), 2)))) * 100
+                        ) / 100,
+                    ],
+                });
             }
         }
+
+        let denominator = Math.pow(this.scores.length, 2) * (Math.pow(this.minRowSize(), 3) - this.minRowSize());
+
+        for (let i = 0; i < this.itemRanks.length; i++) {
+            let duplicates = {};
+
+            for (let j = 0; j < this.itemRanks[i].values.length; j++) {
+                const rank = this.itemRanks[i].values[j];
+                duplicates[rank] = (duplicates[rank] || 0) + 1;
+            }
+
+            Object.entries(duplicates).map(entry => entry[1]).filter(d => d !== 1).forEach(d => {
+                denominator += -6 * (Math.pow(+d, 3) - d);
+            })
+        }
+
+        let multipliers = [];
+
+        for (let i = 0; i < this.minRowSize(); i++) {
+            multipliers.push(
+                this.itemRanks
+                    .map(item => item.values[i])
+                    .reduce((a, b) => a + b, 0) - 0.5 * this.scores.length * (this.minRowSize() + 1)
+            )
+        }
+
+        const numerator = 12 * multipliers.reduce((a, b) => a + b ** 2, 0);
+
+        this.w = Math.round(numerator / denominator * 100) / 100;
     }
 
     toResultObject() {
@@ -104,6 +143,8 @@ class Solver {
             v: {id: 'V', values: this.v},
             interval: {id: 'Interval', values: this.interval.map(i => `${i.lower}...${i.upper}`)},
             differences: this.differences,
+            p: this.p,
+            w: this.w,
         }
     }
 }
