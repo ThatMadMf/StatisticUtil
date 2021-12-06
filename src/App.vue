@@ -33,10 +33,14 @@
         style="width: 90%; margin: 2rem 5%; overflow-x: auto;"
     >
       <a-tab-pane key="1" tab="Quantitative assessment">
-        <QuantitativeAssessmentTab :items="source"/>
+        <QuantitativeAssessmentTab :items="source" :result="[solvedObject.s, solvedObject.x, solvedObject.n]"/>
       </a-tab-pane>
       <a-tab-pane key="2" tab="Rank analysis">
-        <RankAnalysisTab :items="source"/>
+        <RankAnalysisTab
+            :item-ranks="solvedObject.itemRanks"
+            :ranks-sum="solvedObject.ranksSum"
+            :result-ranks="solvedObject.resultRanks"
+        />
       </a-tab-pane>
     </a-tabs>
   </div>
@@ -47,6 +51,7 @@
 import ScoresTable from "@/components/ScoresTable";
 import QuantitativeAssessmentTab from "./components/QuantitativeAssessmentTab";
 import RankAnalysisTab from "./components/RankAnalysisTab";
+import Solver from "./solver";
 
 export default {
   name: 'App',
@@ -56,6 +61,9 @@ export default {
     ScoresTable,
   },
   computed: {
+    solvedObject() {
+      return new Solver(this.source).toResultObject();
+    },
     lastExpertId() {
       return this.source.at(-1).id;
     },
