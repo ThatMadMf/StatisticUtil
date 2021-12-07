@@ -1,15 +1,19 @@
 <template>
   <div id="app">
-    <a-button
-        style="
-          width: 30rem;
-          margin: 1rem auto;
-          font-weight: bold;
-          font-size: large;
-          "
+    <a-upload
+        style="margin: 1rem auto;"
+        name="file"
+        :multiple="false"
+        :show-upload-list="false"
+        :transform-file="handleChange"
+        :custom-request="() => { return 0}"
     >
-      Upload file
-    </a-button>
+      <a-button
+          style="width: 30rem; font-size: large; font-weight: bold;"
+      >
+        Upload file
+      </a-button>
+    </a-upload>
     <div style="width: 90%; margin: 2rem 5%; overflow-x: auto; max-height: 17rem; overflow-y: auto" v-if="showTable">
       <ScoresTable
           :scores="source"
@@ -44,7 +48,7 @@
       </a-tab-pane>
       <a-tab-pane key="3" tab="Data consistency">
         <DataConsistencyTab
-          :rows="[
+            :rows="[
               solvedObject.Var,
               solvedObject.x,
               solvedObject.d,
@@ -55,11 +59,11 @@
         />
       </a-tab-pane>
       <a-tab-pane key="4" tab="Rank correlation">
-      <RankCorrelationTab
-        :difference-rows="solvedObject.differences"
-        :p="solvedObject.p"
-        :w="solvedObject.w"
-      />
+        <RankCorrelationTab
+            :difference-rows="solvedObject.differences"
+            :p="solvedObject.p"
+            :w="solvedObject.w"
+        />
       </a-tab-pane>
     </a-tabs>
   </div>
@@ -74,6 +78,69 @@ import Solver from "./solver";
 import DataConsistencyTab from "./components/DataConsistencyTab";
 import RankCorrelationTab from "./components/RankCorrelationTab";
 
+const source = [
+  {
+    id: 1,
+    scores: [
+      {id: 1, score: 7},
+      {id: 2, score: 8},
+      {id: 3, score: 4},
+      {id: 4, score: 3},
+      {id: 5, score: 5},
+    ],
+  },
+  {
+    id: 2,
+    scores: [
+      {id: 1, score: 6},
+      {id: 2, score: 10},
+      {id: 3, score: 5},
+      {id: 4, score: 4},
+      {id: 5, score: 5},
+    ],
+  },
+  {
+    id: 3,
+    scores: [
+      {id: 1, score: 9},
+      {id: 2, score: 7},
+      {id: 3, score: 6},
+      {id: 4, score: 6},
+      {id: 5, score: 5},
+    ],
+  },
+  {
+    id: 4,
+    scores: [
+      {id: 1, score: 7},
+      {id: 2, score: 9},
+      {id: 3, score: 7},
+      {id: 4, score: 5},
+      {id: 5, score: 4},
+    ],
+  },
+  {
+    id: 5,
+    scores: [
+      {id: 1, score: 4},
+      {id: 2, score: 5},
+      {id: 3, score: 7},
+      {id: 4, score: 7},
+      {id: 5, score: 6},
+    ],
+  },
+  {
+    id: 6,
+    scores: [
+      {id: 1, score: 8},
+      {id: 2, score: 8},
+      {id: 3, score: 7},
+      {id: 4, score: 7},
+      {id: 5, score: 6},
+    ],
+  }
+];
+
 export default {
   name: 'App',
   components: {
@@ -84,9 +151,6 @@ export default {
     ScoresTable,
   },
   computed: {
-    solvedObject() {
-      return new Solver(this.source).toResultObject();
-    },
     lastExpertId() {
       return this.source.at(-1).id;
     },
@@ -101,69 +165,9 @@ export default {
   },
   data() {
     return {
+      source: source,
       showTable: true,
-      source: [
-        {
-          id: 1,
-          scores: [
-            {id: 1, score: 7},
-            {id: 2, score: 8},
-            {id: 3, score: 4},
-            {id: 4, score: 3},
-            {id: 5, score: 5},
-          ],
-        },
-        {
-          id: 2,
-          scores: [
-            {id: 1, score: 6},
-            {id: 2, score: 10},
-            {id: 3, score: 5},
-            {id: 4, score: 4},
-            {id: 5, score: 5},
-          ],
-        },
-        {
-          id: 3,
-          scores: [
-            {id: 1, score: 9},
-            {id: 2, score: 7},
-            {id: 3, score: 6},
-            {id: 4, score: 6},
-            {id: 5, score: 5},
-          ],
-        },
-        {
-          id: 4,
-          scores: [
-            {id: 1, score: 7},
-            {id: 2, score: 9},
-            {id: 3, score: 7},
-            {id: 4, score: 5},
-            {id: 5, score: 4},
-          ],
-        },
-        {
-          id: 5,
-          scores: [
-            {id: 1, score: 4},
-            {id: 2, score: 5},
-            {id: 3, score: 7},
-            {id: 4, score: 7},
-            {id: 5, score: 6},
-          ],
-        },
-        {
-          id: 6,
-          scores: [
-            {id: 1, score: 8},
-            {id: 2, score: 8},
-            {id: 3, score: 7},
-            {id: 4, score: 7},
-            {id: 5, score: 6},
-          ],
-        }
-      ],
+      solvedObject: new Solver(source).toResultObject(),
     }
   },
   methods: {
@@ -174,7 +178,32 @@ export default {
       this.source.forEach(s => {
         s.scores.push({id: this.lastScoreId + 1, score: 0})
       })
-    }
+    },
+    handleChange(file) {
+      const reader = new FileReader();
+
+      let newSource = [];
+
+      reader.onload = (e) => {
+        e.target.result.split('\n').forEach((line, index) => {
+          newSource.push({
+            id: index + 1,
+            scores: line.split(' ').map((n, i) => {
+              return {id: i + 1, score: +n}
+            })
+          })
+        })
+
+        console.log(this.source, newSource)
+
+        this.source = newSource;
+        this.solvedObject = new Solver(this.source).toResultObject();
+      }
+
+      reader.readAsText(file);
+
+      return false
+    },
   }
 }
 </script>

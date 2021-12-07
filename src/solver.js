@@ -1,6 +1,7 @@
 class Solver {
     constructor(scores) {
         this.scores = scores;
+
         this.quantitativeAssessment();
         this.rankAnalysis();
         this.dataConsistency();
