@@ -19,6 +19,9 @@
           :scores="source"
           :append-row="appendRow"
           :append-column="appendColumn"
+          :change-handler="recalculate"
+          :remove-row="removeRow"
+          :remove-column="removeColumn"
       />
     </div>
     <a-button
@@ -154,9 +157,6 @@ export default {
     lastExpertId() {
       return this.source.at(-1).id;
     },
-    lastScoreId() {
-      return this.source[0].scores.at(-1).id
-    },
     scoresOfCurrentSize() {
       return new Array(this.source.at(-1).scores.length).fill(0).map((item, index) => {
         return {id: index + 1, score: 0}
@@ -172,12 +172,26 @@ export default {
   },
   methods: {
     appendRow() {
-      this.source.push({id: this.lastExpertId + 1, scores: this.scoresOfCurrentSize})
+      this.source.push({id: this.lastExpertId + 1, scores: this.scoresOfCurrentSize});
+      this.recalculate();
+    },
+    removeRow() {
+      this.source.splice(-1);
+
+      this.recalculate();
     },
     appendColumn() {
       this.source.forEach(s => {
-        s.scores.push({id: this.lastScoreId + 1, score: 0})
+        s.scores.push({id: s.scores.length + 1, score: 0});
       })
+      this.recalculate();
+    },
+    removeColumn() {
+      this.source.forEach(s => {
+        s.scores.splice(-1);
+      });
+
+      this.recalculate();
     },
     handleChange(file) {
       const reader = new FileReader();
@@ -191,19 +205,20 @@ export default {
             scores: line.split(' ').map((n, i) => {
               return {id: i + 1, score: +n}
             })
-          })
-        })
-
-        console.log(this.source, newSource)
+          });
+        });
 
         this.source = newSource;
-        this.solvedObject = new Solver(this.source).toResultObject();
+        this.recalculate();
       }
 
       reader.readAsText(file);
 
       return false
     },
+    recalculate() {
+      this.solvedObject = new Solver(this.source).toResultObject();
+    }
   }
 }
 </script>

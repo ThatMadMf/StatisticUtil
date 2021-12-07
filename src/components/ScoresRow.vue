@@ -2,7 +2,7 @@
   <div class="scores-row-wrapper">
     <a-input class="row-header" :disabled="true" :value="row.id"/>
     <div class="score-value-wrapper" v-for="s in row.scores" :key="s.id">
-      <a-input class="score-input"  v-model.number="s.score" type="number"/>
+      <a-input class="score-input" @change="changeHandler" v-model.number="s.score" type="number"/>
     </div>
   </div>
 </template>
@@ -12,6 +12,7 @@ export default {
   name: 'ScoresRow',
   props: {
     row: Object,
+    changeHandler: Function,
   }
 }
 </script>
