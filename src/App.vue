@@ -1,57 +1,58 @@
 <template>
   <div id="app">
-    <a-upload
-        style="margin: 1rem auto;"
-        name="file"
-        :multiple="false"
-        :show-upload-list="false"
-        :transform-file="handleChange"
-        :custom-request="() => { return 0}"
-    >
-      <a-button
-          style="width: 30rem; font-size: large; font-weight: bold;"
+    <div v-if="displayLab === 1">
+      <a-upload
+          style="margin: 1rem auto;"
+          name="file"
+          :multiple="false"
+          :show-upload-list="false"
+          :transform-file="handleChange"
+          :custom-request="() => { return 0}"
       >
-        Upload file
-      </a-button>
-    </a-upload>
-    <div style="width: 90%; margin: 2rem 5%; overflow-x: auto; max-height: 17rem; overflow-y: auto" v-if="showTable">
-      <ScoresTable
-          :scores="source"
-          :append-row="appendRow"
-          :append-column="appendColumn"
-          :change-handler="recalculate"
-          :remove-row="removeRow"
-          :remove-column="removeColumn"
-      />
-    </div>
-    <a-button
-        style="
+        <a-button
+            style="width: 30rem; font-size: large; font-weight: bold;"
+        >
+          Upload file
+        </a-button>
+      </a-upload>
+      <div style="width: 90%; margin: 2rem 5%; overflow-x: auto; max-height: 17rem; overflow-y: auto" v-if="showTable">
+        <ScoresTable
+            :scores="source"
+            :append-row="appendRow"
+            :append-column="appendColumn"
+            :change-handler="recalculate"
+            :remove-row="removeRow"
+            :remove-column="removeColumn"
+        />
+      </div>
+      <a-button
+          style="
           width: 30rem;
           margin: 1rem auto;
           font-weight: bold;
           font-size: large;
           "
-        @click="showTable = !showTable"
-    >
-      {{ showTable ? 'Hide table' : 'Show table' }}
-    </a-button>
-    <a-tabs
-        default-active-key="1"
-        style="width: 90%; margin: 2rem 5%; overflow-x: auto; max-height: 25rem; overflow-y: auto;"
-    >
-      <a-tab-pane key="1" tab="Quantitative assessment">
-        <QuantitativeAssessmentTab :items="source" :result="[solvedObject.s, solvedObject.x, solvedObject.n]"/>
-      </a-tab-pane>
-      <a-tab-pane key="2" tab="Rank analysis">
-        <RankAnalysisTab
-            :item-ranks="solvedObject.itemRanks"
-            :ranks-sum="solvedObject.ranksSum"
-            :result-ranks="solvedObject.resultRanks"
-        />
-      </a-tab-pane>
-      <a-tab-pane key="3" tab="Data consistency">
-        <DataConsistencyTab
-            :rows="[
+          @click="showTable = !showTable"
+      >
+        {{ showTable ? 'Hide table' : 'Show table' }}
+      </a-button>
+      <a-tabs
+          default-active-key="1"
+          style="width: 90%; margin: 2rem 5%; overflow-x: auto; max-height: 25rem; overflow-y: auto;"
+      >
+        <a-tab-pane key="1" tab="Quantitative assessment">
+          <QuantitativeAssessmentTab :items="source" :result="[solvedObject.s, solvedObject.x, solvedObject.n]"/>
+        </a-tab-pane>
+        <a-tab-pane key="2" tab="Rank analysis">
+          <RankAnalysisTab
+              :item-ranks="solvedObject.itemRanks"
+              :ranks-sum="solvedObject.ranksSum"
+              :result-ranks="solvedObject.resultRanks"
+          />
+        </a-tab-pane>
+        <a-tab-pane key="3" tab="Data consistency">
+          <DataConsistencyTab
+              :rows="[
               solvedObject.Var,
               solvedObject.x,
               solvedObject.d,
@@ -59,16 +60,54 @@
               solvedObject.v,
               solvedObject.interval,
               ]"
+          />
+        </a-tab-pane>
+        <a-tab-pane key="4" tab="Rank correlation">
+          <RankCorrelationTab
+              :difference-rows="solvedObject.differences"
+              :p="solvedObject.p"
+              :w="solvedObject.w"
+          />
+        </a-tab-pane>
+      </a-tabs>
+    </div>
+    <div v-if="displayLab === 2">
+      <div class="lab-2-settings">
+        <a-select
+            v-model="selectedStrategy"
+            @select="handleLab2Change"
+        >
+          <a-select-option
+              v-for="o in strategyChoices"
+              :key="o"
+          >
+            {{ o }}
+          </a-select-option>
+        </a-select>
+
+        <a-input
+            v-model="strategyStartYear"
+            style="width: 10rem"
+            @change="handleLab2Change"
+            type="number"
         />
-      </a-tab-pane>
-      <a-tab-pane key="4" tab="Rank correlation">
-        <RankCorrelationTab
-            :difference-rows="solvedObject.differences"
-            :p="solvedObject.p"
-            :w="solvedObject.w"
+        <a-input
+            v-model="loan"
+            style="width: 10rem"
+            @change="handleLab2Change"
+            type="number"
         />
-      </a-tab-pane>
-    </a-tabs>
+      </div>
+
+      <Lab2Table
+          v-if="lab2Result"
+          :items="lab2Result"
+      />
+
+      <span style="font-size: large; display: inline-block; margin: 0 50%">
+        {{ `Final balance is ${lab2Result[lab2Result.length - 1].balance}` }}
+      </span>
+    </div>
   </div>
 </template>
 
@@ -80,6 +119,15 @@ import RankAnalysisTab from "./components/RankAnalysisTab";
 import Solver from "./solver";
 import DataConsistencyTab from "./components/DataConsistencyTab";
 import RankCorrelationTab from "./components/RankCorrelationTab";
+import Lab2Solver from "../lab2-solver";
+import Lab2Table from "./components/Lab2Table";
+
+const strategyChoices = [
+  'DEPOSIT',
+  'CONTRACTOR_1',
+  'CONTRACTOR_2',
+  'CONTRACTOR_3',
+]
 
 const source = [
   {
@@ -147,6 +195,7 @@ const source = [
 export default {
   name: 'App',
   components: {
+    Lab2Table,
     RankCorrelationTab,
     DataConsistencyTab,
     RankAnalysisTab,
@@ -161,13 +210,20 @@ export default {
       return new Array(this.source.at(-1).scores.length).fill(0).map((item, index) => {
         return {id: index + 1, score: 0}
       });
-    }
+    },
   },
   data() {
     return {
+      lab2Solver: new Lab2Solver('DEPOSIT'),
+      displayLab: 2,
+      strategyChoices: strategyChoices,
       source: source,
+      strategyStartYear: 2022,
+      loan: 5,
+      selectedStrategy: strategyChoices[0],
       showTable: true,
       solvedObject: new Solver(source).toResultObject(),
+      lab2Result: [],
     }
   },
   methods: {
@@ -216,9 +272,16 @@ export default {
 
       return false
     },
+    handleLab2Change() {
+      this.lab2Solver = new Lab2Solver(this.selectedStrategy, parseInt(this.strategyStartYear), parseInt(this.loan));
+      this.lab2Result = this.lab2Solver.solve();
+    },
     recalculate() {
       this.solvedObject = new Solver(this.source).toResultObject();
     }
+  },
+  mounted() {
+    this.lab2Result = this.lab2Solver.solve();
   }
 }
 </script>
@@ -228,5 +291,11 @@ export default {
   width: 100%;
   display: flex;
   flex-direction: column;
+}
+
+.lab-2-settings {
+  display: flex;
+  flex-direction: row;
+  margin: 2rem 2rem;
 }
 </style>
